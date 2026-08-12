@@ -63,8 +63,8 @@ void ofApp::draw(){
 	ofDrawBitmapString("mouse: look around"
 					   "\nw/s: forward/backwards"
 					   "\na/d: strafe left/right"
-					   "\ne/c: move up/down"
-					   "\nq/r: roll left/right"
+					   "\ne/q: move up/down"
+					   "\nx/c: roll left/right"
 					   "\nf: reset roll"
 					   "\n"
 					   "\nclick or tab: toggle camera control"
@@ -79,7 +79,7 @@ void ofApp::draw(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-	// Note: w a s d e c q r f are consumed by the camera, so the app-level
+	// Note: w a s d e q x c f are consumed by the camera, so the app-level
 	// shortcuts below deliberately stay clear of them.
 	switch (key) {
 		case OF_KEY_TAB:

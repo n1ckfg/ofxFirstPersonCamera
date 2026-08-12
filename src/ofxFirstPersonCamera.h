@@ -25,13 +25,13 @@ class ofxFirstPersonCamera : public ofCamera
 
     // GLFW_KEY_* keycodes, independent of keyboard layout and modifiers
     int keyUp         = GLFW_KEY_E;
-    int keyDown       = GLFW_KEY_C;
+    int keyDown       = GLFW_KEY_Q;
     int keyLeft       = GLFW_KEY_A;
     int keyRight      = GLFW_KEY_D;
     int keyForward    = GLFW_KEY_W;
     int keyBackward   = GLFW_KEY_S;
-    int keyRollLeft   = GLFW_KEY_Q;
-    int keyRollRight  = GLFW_KEY_R;
+    int keyRollLeft   = GLFW_KEY_X;
+    int keyRollRight  = GLFW_KEY_C;
     int keyRollReset  = GLFW_KEY_F;
 
     float movespeed   = 1.00f;

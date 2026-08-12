@@ -7,7 +7,7 @@
 Inherits from `ofCamera`.
 
 ### Overview
-This class manages the view matrix for a first-person perspective. It handles keyboard and mouse events natively through openFrameworks event listeners (`ofEventArgs`, `ofKeyEventArgs`, `ofMouseEventArgs`). By default, it uses standard `WASD` controls for movement, `Q`/`R` for rolling, `E`/`C` for vertical translation, and the mouse for looking around.
+This class manages the view matrix for a first-person perspective. It handles keyboard and mouse events natively through openFrameworks event listeners (`ofEventArgs`, `ofKeyEventArgs`, `ofMouseEventArgs`). By default, it uses standard `WASD` controls for movement, `X`/`C` for rolling, `E`/`Q` for vertical translation, and the mouse for looking around.
 
 ### Public Methods
 
