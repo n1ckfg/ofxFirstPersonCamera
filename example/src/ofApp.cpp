@@ -69,6 +69,8 @@ void ofApp::draw(){
 					   "\nshift (hold): run"
 					   "\nt: toggle movement ease in"
 					   "\nz: toggle fly mode"
+					   "\no: save camera pose"
+					   "\ni: load camera pose"
 					   "\n"
 					   "\nclick or tab: toggle camera control"
 					   "\n1: reset camera to (0,0,600)"
@@ -79,13 +81,19 @@ void ofApp::draw(){
 	ofDrawBitmapString(std::string(camera.isControlled() ? "camera control is ON" : "camera control is OFF (click to grab)")
 					   + "   |   ease in: " + (camera.easein ? "ON" : "OFF")
 					   + "   |   fly mode: " + (camera.flymode ? "ON (free flight)" : "OFF (walking the ground plane)"),
+					   30, ofGetHeight()-45);
+
+	// The pose is reloaded on startup, so the file is what the camera will
+	// come back to next time the example is run
+	ofDrawBitmapString("pose file: bin/data/" + camera.cameraPositionFile
+					   + (camera.hasUnsavedPosition() ? "   (unsaved changes)" : "   (saved)"),
 					   30, ofGetHeight()-30);
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-	// Note: w a s d e q x c f t z and shift are consumed by the camera, so the
-	// app-level shortcuts below deliberately stay clear of them.
+	// Note: w a s d e q x c f t z i o and shift are consumed by the camera, so
+	// the app-level shortcuts below deliberately stay clear of them.
 	switch (key) {
 		case OF_KEY_TAB:
 			camera.toggleControl();
