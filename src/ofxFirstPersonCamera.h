@@ -7,6 +7,12 @@
 // whatever GL headers it wants here. Exposed so that users can reassign the
 // key bindings below with GLFW_KEY_* constants.
 #include <GLFW/glfw3.h>
+#elif defined(TARGET_LINUX)
+// ofAppEGLWindow (Raspberry Pi and friends) keeps its own cursor position and
+// clamps it to the window, so the pointer runs out of room to move. Read the
+// relative motion straight off the evdev devices instead to get the same
+// unbounded looking that GLFW_CURSOR_DISABLED gives us on desktop.
+#define OFX_FPC_EVDEV_MOUSE
 #endif
 
 class ofxFirstPersonCamera : public ofCamera
@@ -50,6 +56,14 @@ class ofxFirstPersonCamera : public ofCamera
 
     glm::vec3 upvector { 0.0f, 1.0f, 0.0f };
 
+#ifdef OFX_FPC_EVDEV_MOUSE
+    // Take the mouse away from the rest of the system while control is
+    // enabled, so that ofAppEGLWindow stops drawing/moving its own cursor.
+    // The app will not receive mouse button events either, so this is off by
+    // default. Set it before calling enableControl().
+    bool grabMouseDevice = false;
+#endif
+
   protected:
 
     void update(ofEventArgs&);
@@ -66,6 +80,15 @@ class ofxFirstPersonCamera : public ofCamera
 
 #ifdef TARGET_GLFW_WINDOW
     GLFWwindow* m_glfwWindow = nullptr;
+#endif
+
+#ifdef OFX_FPC_EVDEV_MOUSE
+    void openMouseDevices();
+    void closeMouseDevices();
+    bool pollMouseDevices(float& xdelta, float& ydelta);
+    void applyRawRotation();
+
+    std::vector<int> m_mouseFds;
 #endif
 
     struct Actions {
