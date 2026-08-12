@@ -1,4 +1,7 @@
+#pragma once
+
 #include "ofMain.h"
+
 #include "ofxFirstPersonCamera.h"
 
 class ofApp : public ofBaseApp {
@@ -8,18 +11,12 @@ class ofApp : public ofBaseApp {
 		void update();
 		void draw();
 
-		void keyPressed  (int key);
-		void keyReleased(int key);
-		void mouseMoved(int x, int y );
-		void mouseDragged(int x, int y, int button);
+		void keyPressed(int key);
 		void mousePressed(int x, int y, int button);
-		void mouseReleased(int x, int y, int button);
-		void windowResized(int w, int h);
+
+		void resetCamera();
 
 		ofxFirstPersonCamera camera;
 
-		ofCylinderPrimitive cylinders [50];
-
+		std::vector<ofCylinderPrimitive> cylinders;
 };
-
-

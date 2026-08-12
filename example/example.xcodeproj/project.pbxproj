@@ -4,16 +4,6 @@
 	"classes": {},
 	"objectVersion": "54",
 	"objects": {
-		"0864160C-BBC0-4BE3-BDBE-5D4E36803B6A": {
-			"children": [
-				"DFE43BAD-699F-4C38-BA6C-06D198ADE470",
-				"4D2877D4-8BAF-4B63-A3FB-0BEC40D1432E"
-			],
-			"isa": "PBXGroup",
-			"name": "ofxXmlSettings",
-			"path": "ofxXmlSettings",
-			"sourceTree": "<group>"
-		},
 		"089F6407-FAA9-417A-A2EB-93FECA6C6E28": {
 			"children": [
 				"0C8399C3-AB48-4744-8C5B-B5CF7BFA9B27",
@@ -67,34 +57,6 @@
 			"path": "bin/data",
 			"sourceTree": "SOURCE_ROOT"
 		},
-		"46B5DCE4-DDBA-4C0A-A205-D9A9F0027391": {
-			"fileEncoding": "4",
-			"isa": "PBXFileReference",
-			"lastKnownFileType": "sourcecode.cpp.cpp",
-			"name": "tinyxmlparser.cpp",
-			"sourceTree": "<group>"
-		},
-		"47D6E506-7035-4BA5-A412-CB2A69095624": {
-			"fileRef": "CE019C8B-2E73-41D6-899C-8E322A0211E8",
-			"isa": "PBXBuildFile"
-		},
-		"4D2877D4-8BAF-4B63-A3FB-0BEC40D1432E": {
-			"children": [
-				"CE019C8B-2E73-41D6-899C-8E322A0211E8",
-				"587DC2D8-B545-440B-9A06-697D51CA3C74"
-			],
-			"isa": "PBXGroup",
-			"name": "src",
-			"path": "src",
-			"sourceTree": "<group>"
-		},
-		"587DC2D8-B545-440B-9A06-697D51CA3C74": {
-			"fileEncoding": "4",
-			"isa": "PBXFileReference",
-			"lastKnownFileType": "sourcecode.cpp.h",
-			"name": "ofxXmlSettings.h",
-			"sourceTree": "<group>"
-		},
 		"6F1EEA6E-F7A6-4FBB-A8B2-92AA70751C8E": {
 			"children": [
 				"089F6407-FAA9-417A-A2EB-93FECA6C6E28"
@@ -104,28 +66,9 @@
 			"path": "ofxFirstPersonCamera",
 			"sourceTree": "<group>"
 		},
-		"73B5CA93-AD77-4E38-B506-FDFD8D127AA6": {
-			"fileEncoding": "4",
-			"isa": "PBXFileReference",
-			"lastKnownFileType": "sourcecode.cpp.cpp",
-			"name": "tinyxml.cpp",
-			"sourceTree": "<group>"
-		},
-		"B9C68655-5C8A-452F-8267-5DD932DA9BEF": {
-			"fileRef": "73B5CA93-AD77-4E38-B506-FDFD8D127AA6",
-			"isa": "PBXBuildFile"
-		},
-		"BA6C62F6-38C1-4B76-9042-1CAB96FC6DAD": {
-			"fileEncoding": "4",
-			"isa": "PBXFileReference",
-			"lastKnownFileType": "sourcecode.cpp.h",
-			"name": "tinyxml.h",
-			"sourceTree": "<group>"
-		},
 		"BB4B014C10F69532006C3DED": {
 			"children": [
-				"6F1EEA6E-F7A6-4FBB-A8B2-92AA70751C8E",
-				"0864160C-BBC0-4BE3-BDBE-5D4E36803B6A"
+				"6F1EEA6E-F7A6-4FBB-A8B2-92AA70751C8E"
 			],
 			"isa": "PBXGroup",
 			"name": "addons",
@@ -139,32 +82,9 @@
 			"name": "ofxFirstPersonCamera.h",
 			"sourceTree": "<group>"
 		},
-		"CE019C8B-2E73-41D6-899C-8E322A0211E8": {
-			"fileEncoding": "4",
-			"isa": "PBXFileReference",
-			"lastKnownFileType": "sourcecode.cpp.cpp",
-			"name": "ofxXmlSettings.cpp",
-			"sourceTree": "<group>"
-		},
 		"DCF31CF8-D332-4983-A746-6946F2461941": {
 			"fileRef": "0C8399C3-AB48-4744-8C5B-B5CF7BFA9B27",
 			"isa": "PBXBuildFile"
-		},
-		"DF53DC3B-9F63-4916-86D1-7D99C3AB1C74": {
-			"fileRef": "F2EF95CC-193A-4C52-90DE-03A17D99D503",
-			"isa": "PBXBuildFile"
-		},
-		"DFE43BAD-699F-4C38-BA6C-06D198ADE470": {
-			"children": [
-				"73B5CA93-AD77-4E38-B506-FDFD8D127AA6",
-				"BA6C62F6-38C1-4B76-9042-1CAB96FC6DAD",
-				"F2EF95CC-193A-4C52-90DE-03A17D99D503",
-				"46B5DCE4-DDBA-4C0A-A205-D9A9F0027391"
-			],
-			"isa": "PBXGroup",
-			"name": "libs",
-			"path": "libs",
-			"sourceTree": "<group>"
 		},
 		"E42962A92163ECCD00A6A9E2": {
 			"alwaysOutOfDate": "1",
@@ -270,11 +190,7 @@
 			"files": [
 				"E4B69E200A3A1BDC003C02F2",
 				"E4B69E210A3A1BDC003C02F2",
-				"DCF31CF8-D332-4983-A746-6946F2461941",
-				"B9C68655-5C8A-452F-8267-5DD932DA9BEF",
-				"DF53DC3B-9F63-4916-86D1-7D99C3AB1C74",
-				"FB7FCC98-98B6-4636-9DE6-A4CA57F20BAC",
-				"47D6E506-7035-4BA5-A412-CB2A69095624"
+				"DCF31CF8-D332-4983-A746-6946F2461941"
 			],
 			"isa": "PBXSourcesBuildPhase",
 			"runOnlyForDeploymentPostprocessing": "0"
@@ -329,10 +245,7 @@
 				"HEADER_SEARCH_PATHS": [
 					"$(OF_CORE_HEADERS)",
 					"src",
-					"src",
-					"../src",
-					"../../ofxXmlSettings/libs",
-					"../../ofxXmlSettings/src"
+					"../src"
 				],
 				"LIBRARY_SEARCH_PATHS": "$(inherited)",
 				"OTHER_LDFLAGS": [
@@ -353,10 +266,7 @@
 				"HEADER_SEARCH_PATHS": [
 					"$(OF_CORE_HEADERS)",
 					"src",
-					"src",
-					"../src",
-					"../../ofxXmlSettings/libs",
-					"../../ofxXmlSettings/src"
+					"../src"
 				],
 				"LIBRARY_SEARCH_PATHS": "$(inherited)",
 				"OTHER_LDFLAGS": [
@@ -432,17 +342,6 @@
 			"lastKnownFileType": "text.xcconfig",
 			"path": "Project.xcconfig",
 			"sourceTree": "<group>"
-		},
-		"F2EF95CC-193A-4C52-90DE-03A17D99D503": {
-			"fileEncoding": "4",
-			"isa": "PBXFileReference",
-			"lastKnownFileType": "sourcecode.cpp.cpp",
-			"name": "tinyxmlerror.cpp",
-			"sourceTree": "<group>"
-		},
-		"FB7FCC98-98B6-4636-9DE6-A4CA57F20BAC": {
-			"fileRef": "46B5DCE4-DDBA-4C0A-A205-D9A9F0027391",
-			"isa": "PBXBuildFile"
 		}
 	},
 	"rootObject": "E4B69B4C0A3A1720003C02F2"

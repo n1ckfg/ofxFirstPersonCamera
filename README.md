@@ -4,13 +4,18 @@ ofxFirstPersonCamera
 
 Lightweight ofCamera class that replicates camera controls of first person video games. It uses mouse to look around, hides cursor on activation and has reassignable keys which by default set to `WASD` for moving the camera, `E` and `C` to move camera up and down, `Q` and `R` to roll left and right and `F` to reset camera's up vector.
 
-Tested on Linux and Windows, should work on Mac as well.
+Tested on Linux, Windows and macOS.
 
 
 Dependencies
 ------------
 
-#### 1. OF 0.9.0 and C++11
+#### 1. openFrameworks 0.12.1
+
+#### 2. An `ofAppGLFWWindow`
+
+The addon talks to GLFW directly to grab and re-center the cursor, so the app
+has to run on the default GLFW window backend.
 
 Compiling
 ---------
@@ -39,19 +44,20 @@ Include header file in `ofApp.h`, add an instance of `ofxFirstPersonCamera`:
 class ofApp : public ofBaseApp
 {
   public:
-    void mousePressed(ofMouseEventArgs &mouse);
+    void mousePressed(int x, int y, int button);
     void draw();
 
     ofxFirstPersonCamera cam;
 };
 ```
 
-Enable first person camera control in `setup` call and set computed matrix to any ofCamera:
+`ofxFirstPersonCamera` is an `ofCamera`, so it is used like any other one. Call
+`enableControl()` (or `toggleControl()`) to grab the cursor and start driving it:
 
 ```cpp
 #include "ofApp.h"
 
-void ofApp::mousePressed(ofMouseEventArgs &mouse)
+void ofApp::mousePressed(int x, int y, int button)
 {
   cam.toggleControl();
 }
@@ -66,8 +72,21 @@ void ofApp::draw()
 }
 ```
 
+Key bindings are `GLFW_KEY_*` keycodes and can all be reassigned, e.g.
+`cam.keyForward = GLFW_KEY_UP;`. Speeds are expressed per frame at 60 fps and
+are scaled by the actual frame time, so movement stays consistent:
+
+```cpp
+cam.movespeed   = 1.00f;   // units per frame
+cam.rollspeed   = 1.00f;   // degrees per frame
+cam.sensitivity = 0.10f;   // degrees per pixel of mouse movement
+```
+
 
 Examples
 --------
 
-### [example-ofxFirstPersonCamera](https://github.com/ofnode/example-ofxFirstPersonCamera)
+### [example](example)
+
+Bundled with this addon. Open `example/example.xcodeproj` (macOS) or run `make`
+in the `example` folder.

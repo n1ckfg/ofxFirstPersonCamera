@@ -2,6 +2,15 @@
 
 #include "ofMain.h"
 
+#ifndef TARGET_GLFW_WINDOW
+  #error "ofxFirstPersonCamera needs an ofAppGLFWWindow (TARGET_GLFW_WINDOW)."
+#endif
+
+// ofMain.h has already pulled in GLEW, so it is safe to let GLFW bring in
+// whatever GL headers it wants here. Exposed so that users can reassign the
+// key bindings below with GLFW_KEY_* constants.
+#include <GLFW/glfw3.h>
+
 class ofxFirstPersonCamera : public ofCamera
 {
   public:
@@ -9,26 +18,27 @@ class ofxFirstPersonCamera : public ofCamera
     ofxFirstPersonCamera();
    ~ofxFirstPersonCamera();
 
-    bool isControlled();
+    bool isControlled() const;
     void toggleControl();
     void enableControl();
     void disableControl();
 
-    int keyUp;
-    int keyDown;
-    int keyLeft;
-    int keyRight;
-    int keyForward;
-    int keyBackward;
-    int keyRollLeft;
-    int keyRollRight;
-    int keyRollReset;
+    // GLFW_KEY_* keycodes, independent of keyboard layout and modifiers
+    int keyUp         = GLFW_KEY_E;
+    int keyDown       = GLFW_KEY_C;
+    int keyLeft       = GLFW_KEY_A;
+    int keyRight      = GLFW_KEY_D;
+    int keyForward    = GLFW_KEY_W;
+    int keyBackward   = GLFW_KEY_S;
+    int keyRollLeft   = GLFW_KEY_Q;
+    int keyRollRight  = GLFW_KEY_R;
+    int keyRollReset  = GLFW_KEY_F;
 
-    float movespeed;
-    float rollspeed;
-    float sensitivity;
+    float movespeed   = 1.00f;
+    float rollspeed   = 1.00f;
+    float sensitivity = 0.10f;
 
-    ofVec3f upvector;
+    glm::vec3 upvector { 0.0f, 1.0f, 0.0f };
 
   protected:
 
@@ -42,21 +52,22 @@ class ofxFirstPersonCamera : public ofCamera
   private:
 
     void nodeRotate(ofMouseEventArgs&);
+    void centerCursor();
 
-    GLFWwindow* m_glfwWindow;
-    
+    GLFWwindow* m_glfwWindow = nullptr;
+
     struct Actions {
-      bool Up;
-      bool Down;
-      bool Left;
-      bool Right;
-      bool Forward;
-      bool Backward;
-      bool RollLeft;
-      bool RollRight;
-      bool RollReset;
+      bool Up        = false;
+      bool Down      = false;
+      bool Left      = false;
+      bool Right     = false;
+      bool Forward   = false;
+      bool Backward  = false;
+      bool RollLeft  = false;
+      bool RollRight = false;
+      bool RollReset = false;
     } m_doa;
 
-    bool m_isControlled;
-    bool m_isMouseInited;
+    bool m_isControlled  = false;
+    bool m_isMouseInited = false;
 };
