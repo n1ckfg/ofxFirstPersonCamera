@@ -2,17 +2,27 @@
 #include "ofApp.h"
 
 //========================================================================
-int main( ){
+int main() {
+	
+	int w = 1024;
+	int h = 768;
+	
+	// setup the GL context
+#ifdef TARGET_OPENGLES
+	ofGLESWindowSettings settings;
+	settings.glesVersion = 2;
+	settings.setSize(w, h);
+	ofCreateWindow(settings);
+#else
+    ofGLFWWindowSettings settings;
+    settings.numSamples = 0;
+	settings.setSize(w, h);
+    ofCreateWindow(settings);                       
+#endif
 
-	// ofxFirstPersonCamera drives the GLFW cursor directly, so it needs a
-	// GLFW window - which ofGLFWWindowSettings guarantees.
-	ofGLFWWindowSettings settings;
-	settings.setSize(1024, 768);
-	settings.windowMode = OF_WINDOW; //can also be OF_FULLSCREEN
-
-	auto window = ofCreateWindow(settings);
-
-	ofRunApp(window, std::make_shared<ofApp>());
-	ofRunMainLoop();
+    // this kicks off the running of my app
+    // can be OF_WINDOW or OF_FULLSCREEN
+    // pass in width and height too:
+    ofRunApp(new ofApp());
 
 }
