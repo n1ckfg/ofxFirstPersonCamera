@@ -32,6 +32,7 @@ void ofxFirstPersonCamera::toggleControl()
 
 void ofxFirstPersonCamera::enableControl()
 {
+#ifdef TARGET_GLFW_WINDOW
   auto win = dynamic_cast<ofAppGLFWWindow*>(ofGetWindowPtr());
   if (!win) {
     ofLogError("ofxFirstPersonCamera") << "needs an ofAppGLFWWindow, control not enabled";
@@ -39,8 +40,10 @@ void ofxFirstPersonCamera::enableControl()
   }
 
   m_glfwWindow = win->getGLFWWindow();
-
   glfwSetInputMode(m_glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+#else
+  ofHideCursor();
+#endif
 
   // Ignore whatever the pointer was doing before we grabbed it
   m_isMouseInited = false;
@@ -51,9 +54,13 @@ void ofxFirstPersonCamera::enableControl()
 
 void ofxFirstPersonCamera::disableControl()
 {
+#ifdef TARGET_GLFW_WINDOW
   if (m_glfwWindow) {
     glfwSetInputMode(m_glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
   }
+#else
+  ofShowCursor();
+#endif
 
   m_isControlled = false;
 }
@@ -63,12 +70,14 @@ void ofxFirstPersonCamera::disableControl()
 // coordinates, which is also what glfwSetCursorPos() expects.
 void ofxFirstPersonCamera::centerCursor()
 {
+#ifdef TARGET_GLFW_WINDOW
   if (!m_glfwWindow) return;
 
   int win_w;
   int win_h;
   glfwGetWindowSize(m_glfwWindow, &win_w, &win_h);
   glfwSetCursorPos(m_glfwWindow, win_w / 2.0, win_h / 2.0);
+#endif
 }
 
 void ofxFirstPersonCamera::update(ofEventArgs&)
@@ -117,8 +126,10 @@ void ofxFirstPersonCamera::update(ofEventArgs&)
 
 void ofxFirstPersonCamera::nodeRotate(ofMouseEventArgs& mouse)
 {
-  if (!m_isControlled || !m_glfwWindow) return;
+  if (!m_isControlled) return;
 
+#ifdef TARGET_GLFW_WINDOW
+  if (!m_glfwWindow) return;
   const float win_center_x = ofGetWidth()  * 0.5f;
   const float win_center_y = ofGetHeight() * 0.5f;
 
@@ -132,6 +143,15 @@ void ofxFirstPersonCamera::nodeRotate(ofMouseEventArgs& mouse)
 
   const float xdiff = (win_center_x - mouse.x) * sensitivity;
   const float ydiff = (win_center_y - mouse.y) * sensitivity;
+#else
+  if (!m_isMouseInited) {
+    m_isMouseInited = true;
+    return;
+  }
+  
+  const float xdiff = (ofGetPreviousMouseX() - mouse.x) * sensitivity;
+  const float ydiff = (ofGetPreviousMouseY() - mouse.y) * sensitivity;
+#endif
 
   this->rotateDeg(ydiff, this->getSideDir());
   this->rotateDeg(xdiff, upvector);
@@ -152,7 +172,11 @@ void ofxFirstPersonCamera::mouseDragged(ofMouseEventArgs& mouse)
 void ofxFirstPersonCamera::keyPressed(ofKeyEventArgs& keys)
 {
   Actions doa = m_doa;
+#ifdef TARGET_GLFW_WINDOW
   const int key = keys.keycode;
+#else
+  const int key = keys.key;
+#endif
 
   if      (key == keyUp       ) doa.Up        = true;
   else if (key == keyDown     ) doa.Down      = true;
@@ -171,7 +195,11 @@ void ofxFirstPersonCamera::keyPressed(ofKeyEventArgs& keys)
 void ofxFirstPersonCamera::keyReleased(ofKeyEventArgs& keys)
 {
   Actions doa = m_doa;
+#ifdef TARGET_GLFW_WINDOW
   const int key = keys.keycode;
+#else
+  const int key = keys.key;
+#endif
 
   if      (key == keyUp       ) doa.Up        = false;
   else if (key == keyDown     ) doa.Down      = false;

@@ -2,14 +2,12 @@
 
 #include "ofMain.h"
 
-#ifndef TARGET_GLFW_WINDOW
-  #error "ofxFirstPersonCamera needs an ofAppGLFWWindow (TARGET_GLFW_WINDOW)."
-#endif
-
+#ifdef TARGET_GLFW_WINDOW
 // ofMain.h has already pulled in GLEW, so it is safe to let GLFW bring in
 // whatever GL headers it wants here. Exposed so that users can reassign the
 // key bindings below with GLFW_KEY_* constants.
 #include <GLFW/glfw3.h>
+#endif
 
 class ofxFirstPersonCamera : public ofCamera
 {
@@ -23,6 +21,7 @@ class ofxFirstPersonCamera : public ofCamera
     void enableControl();
     void disableControl();
 
+#ifdef TARGET_GLFW_WINDOW
     // GLFW_KEY_* keycodes, independent of keyboard layout and modifiers
     int keyUp         = GLFW_KEY_E;
     int keyDown       = GLFW_KEY_Q;
@@ -33,6 +32,17 @@ class ofxFirstPersonCamera : public ofCamera
     int keyRollLeft   = GLFW_KEY_X;
     int keyRollRight  = GLFW_KEY_C;
     int keyRollReset  = GLFW_KEY_F;
+#else
+    int keyUp         = 'e';
+    int keyDown       = 'q';
+    int keyLeft       = 'a';
+    int keyRight      = 'd';
+    int keyForward    = 'w';
+    int keyBackward   = 's';
+    int keyRollLeft   = 'x';
+    int keyRollRight  = 'c';
+    int keyRollReset  = 'f';
+#endif
 
     float movespeed   = 1.00f;
     float rollspeed   = 1.00f;
@@ -54,7 +64,9 @@ class ofxFirstPersonCamera : public ofCamera
     void nodeRotate(ofMouseEventArgs&);
     void centerCursor();
 
+#ifdef TARGET_GLFW_WINDOW
     GLFWwindow* m_glfwWindow = nullptr;
+#endif
 
     struct Actions {
       bool Up        = false;
