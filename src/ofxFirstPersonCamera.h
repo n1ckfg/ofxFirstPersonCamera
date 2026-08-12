@@ -38,6 +38,13 @@ class ofxFirstPersonCamera : public ofCamera
     int keyRollLeft   = GLFW_KEY_X;
     int keyRollRight  = GLFW_KEY_C;
     int keyRollReset  = GLFW_KEY_F;
+    // Held down rather than tapped. Either shift key runs while this is bound
+    // to one of them; rebinding it to anything else matches that key exactly.
+    int keyRun        = GLFW_KEY_LEFT_SHIFT;
+    // Tapped to flip a mode. Ignored while control is disabled, so that they
+    // stay usable as application shortcuts when the camera is not driving.
+    int keyToggleEase = GLFW_KEY_T;
+    int keyToggleFly  = GLFW_KEY_Z;
 #else
     int keyUp         = 'e';
     int keyDown       = 'q';
@@ -48,11 +55,29 @@ class ofxFirstPersonCamera : public ofCamera
     int keyRollLeft   = 'x';
     int keyRollRight  = 'c';
     int keyRollReset  = 'f';
+    int keyRun        = OF_KEY_LEFT_SHIFT;
+    int keyToggleEase = 't';
+    int keyToggleFly  = 'z';
 #endif
 
     float movespeed   = 1.00f;
     float rollspeed   = 1.00f;
     float sensitivity = 0.10f;
+
+    // movespeed is multiplied by this while keyRun is held
+    float runspeed    = 2.00f;
+
+    // Seconds spent accelerating from a standstill to full speed when easein
+    // is on. Zero or less makes movement start at full speed as if it was off.
+    float easetime    = 0.25f;
+
+    // Ramp the movement speed up instead of starting at full pace (key: T)
+    bool easein  = false;
+
+    // Free flight: forward/backward follow wherever the camera is looking.
+    // Turn it off (key: Z) to walk instead, where forward/backward stay on the
+    // plane that upvector is normal to and only keyUp/keyDown change height.
+    bool flymode = true;
 
     glm::vec3 upvector { 0.0f, 1.0f, 0.0f };
 
@@ -75,6 +100,7 @@ class ofxFirstPersonCamera : public ofCamera
 
   private:
 
+    void setAction(int key, bool pressed);
     void nodeRotate(ofMouseEventArgs&);
     void centerCursor();
 
@@ -101,7 +127,16 @@ class ofxFirstPersonCamera : public ofCamera
       bool RollLeft  = false;
       bool RollRight = false;
       bool RollReset = false;
+      bool Run       = false;
+      // The toggle keys repeat while held, so remember whether the last
+      // event already flipped the mode
+      bool EaseHeld  = false;
+      bool FlyHeld   = false;
     } m_doa;
+
+    // Movement speed the ease in has reached so far, in units per frame at
+    // 60 fps, just like movespeed
+    float m_speedmod = 0.0f;
 
     bool m_isControlled  = false;
     bool m_isMouseInited = false;

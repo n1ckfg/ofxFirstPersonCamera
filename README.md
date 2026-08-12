@@ -2,7 +2,7 @@ ofxFirstPersonCamera
 ====================
 
 
-Lightweight ofCamera class that replicates camera controls of first person video games. It uses mouse to look around, hides cursor on activation and has reassignable keys which by default set to `WASD` for moving the camera, `E` and `C` to move camera up and down, `Q` and `R` to roll left and right and `F` to reset camera's up vector.
+Lightweight ofCamera class that replicates camera controls of first person video games. It uses mouse to look around, hides cursor on activation and has reassignable keys which by default set to `WASD` for moving the camera, `E` and `C` to move camera up and down, `Q` and `R` to roll left and right and `F` to reset camera's up vector. Hold `Shift` to run, tap `T` for eased-in movement and `Z` to switch between free flight and walking.
 
 Tested on Linux, Windows and macOS.
 
@@ -81,6 +81,32 @@ cam.movespeed   = 1.00f;   // units per frame
 cam.rollspeed   = 1.00f;   // degrees per frame
 cam.sensitivity = 0.10f;   // degrees per pixel of mouse movement
 ```
+
+
+Movement modes
+--------------
+
+Holding `keyRun` (either `Shift` by default) multiplies `movespeed` by
+`runspeed` for as long as it is down.
+
+Two modes are toggled by tapping a key while the camera is being controlled,
+and both start out matching the camera's traditional behaviour, so nothing
+changes until a key is pressed or a flag is set:
+
+| Key | Flag | Default | What the other setting does |
+| --- | --- | --- | --- |
+| `T` | `easein`  | `false` | Movement accelerates from a standstill to full speed over `easetime` seconds instead of starting at full pace. Stopping is still immediate. |
+| `Z` | `flymode` | `true`  | Walking instead of flying: forward/backward and strafing stay on the plane that `upvector` is normal to, so looking up or down no longer lifts the camera off it. `keyUp`/`keyDown` are what change height. |
+
+```cpp
+cam.runspeed = 2.00f;   // movespeed multiplier while keyRun is held
+cam.easetime = 0.25f;   // seconds from a standstill to full speed
+cam.easein   = true;    // start eased, without waiting for a T
+cam.flymode  = false;   // start walking, without waiting for a Z
+```
+
+The toggle keys are ignored while control is disabled, so they stay free to be
+application shortcuts whenever the camera is not driving.
 
 
 Examples

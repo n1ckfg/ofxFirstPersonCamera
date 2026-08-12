@@ -66,6 +66,9 @@ void ofApp::draw(){
 					   "\ne/q: move up/down"
 					   "\nx/c: roll left/right"
 					   "\nf: reset roll"
+					   "\nshift (hold): run"
+					   "\nt: toggle movement ease in"
+					   "\nz: toggle fly mode"
 					   "\n"
 					   "\nclick or tab: toggle camera control"
 					   "\n1: reset camera to (0,0,600)"
@@ -73,14 +76,16 @@ void ofApp::draw(){
 					   "\nsee ofApp.cpp for available methods and vars",
 					   30, 30);
 
-	ofDrawBitmapString(camera.isControlled() ? "camera control is ON" : "camera control is OFF (click to grab)",
+	ofDrawBitmapString(std::string(camera.isControlled() ? "camera control is ON" : "camera control is OFF (click to grab)")
+					   + "   |   ease in: " + (camera.easein ? "ON" : "OFF")
+					   + "   |   fly mode: " + (camera.flymode ? "ON (free flight)" : "OFF (walking the ground plane)"),
 					   30, ofGetHeight()-30);
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-	// Note: w a s d e q x c f are consumed by the camera, so the app-level
-	// shortcuts below deliberately stay clear of them.
+	// Note: w a s d e q x c f t z and shift are consumed by the camera, so the
+	// app-level shortcuts below deliberately stay clear of them.
 	switch (key) {
 		case OF_KEY_TAB:
 			camera.toggleControl();

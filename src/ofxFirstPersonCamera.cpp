@@ -74,6 +74,55 @@ bool keyMatches(int key, int binding)
   return foldKey(key) == foldKey(binding);
 }
 
+#ifndef TARGET_GLFW_WINDOW
+bool isUpperLetter(int key)
+{
+  return key >= 'A' && key <= 'Z';
+}
+
+bool isLetter(int key)
+{
+  return isUpperLetter(key) || (key >= 'a' && key <= 'z');
+}
+#endif
+
+bool isShiftKey(int key)
+{
+#ifdef TARGET_GLFW_WINDOW
+  return key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT;
+#else
+  return key == OF_KEY_LEFT_SHIFT || key == OF_KEY_RIGHT_SHIFT;
+#endif
+}
+
+// A binding can only name one of the two shift keys, but both of them should
+// run. Any other binding is matched as usual.
+bool runKeyMatches(int key, int binding)
+{
+  return isShiftKey(binding) ? isShiftKey(key) : keyMatches(key, binding);
+}
+
+// glm::normalize() is undefined on a zero length vector, and the projection
+// below legitimately collapses to zero when looking straight up or down
+glm::vec3 safeNormalize(const glm::vec3& v)
+{
+  const float len = glm::length(v);
+  if (len < 1e-6f) return glm::vec3(0.0f);
+  return v / len;
+}
+
+// Drops the component along axis (which must be a unit vector), leaving a
+// direction that runs along the plane the axis is normal to
+glm::vec3 flattenTo(const glm::vec3& v, const glm::vec3& axis)
+{
+  return safeNormalize(v - axis * glm::dot(v, axis));
+}
+
+bool isZero(const glm::vec3& v)
+{
+  return glm::dot(v, v) <= 0.0f;
+}
+
 } // namespace
 
 ofxFirstPersonCamera::ofxFirstPersonCamera()
@@ -308,12 +357,42 @@ void ofxFirstPersonCamera::update(ofEventArgs&)
     const float side = doa.Right   - doa.Left;
     const float up   = doa.Up      - doa.Down;
 
-    if (look != 0 || side != 0 || up != 0)
+    if (look == 0 && side == 0 && up == 0)
     {
-      const glm::vec3 lookdir = this->getLookAtDir();
-      const glm::vec3 sidedir = this->getSideDir();
-      const glm::vec3 updir   = this->getUpDir();
-      const float speed = movespeed * step;
+      // Standing still, so the next move eases in from a standstill again
+      m_speedmod = 0.0f;
+    }
+    else
+    {
+      const float topspeed = movespeed * (doa.Run ? runspeed : 1.0f);
+
+      if (!easein || easetime <= 0.0f) {
+        m_speedmod = topspeed;
+      } else {
+        // Linear ramp that reaches top speed easetime seconds after the key
+        // went down. The clamp works in both directions, so letting go of the
+        // run key drops back to walking pace right away rather than coasting.
+        m_speedmod += topspeed * delta / easetime;
+        if (m_speedmod > topspeed) m_speedmod = topspeed;
+      }
+
+      glm::vec3 lookdir = this->getLookAtDir();
+      glm::vec3 sidedir = this->getSideDir();
+      glm::vec3 updir   = this->getUpDir();
+
+      const glm::vec3 groundnormal = flymode ? glm::vec3(0.0f) : safeNormalize(upvector);
+
+      if (!isZero(groundnormal)) {
+        // Walking: take the vertical out of the forward and strafe axes so
+        // that looking up or down stops lifting the camera off the ground
+        // plane. Height is left to the up/down keys, which follow upvector
+        // rather than wherever the camera is pointing.
+        lookdir = flattenTo(lookdir, groundnormal);
+        sidedir = flattenTo(sidedir, groundnormal);
+        updir   = groundnormal;
+      }
+
+      const float speed = m_speedmod * step;
       this->move(lookdir * speed * look +
                  sidedir * speed * side +
                    updir * speed * up);
@@ -371,48 +450,66 @@ void ofxFirstPersonCamera::mouseDragged(ofMouseEventArgs& mouse)
   nodeRotate(mouse);
 }
 
-void ofxFirstPersonCamera::keyPressed(ofKeyEventArgs& keys)
+void ofxFirstPersonCamera::setAction(int key, bool pressed)
 {
   Actions doa = m_doa;
-#ifdef TARGET_GLFW_WINDOW
-  const int key = keys.keycode;
+  bool ismovement = true;
+
+  if      (keyMatches(key, keyUp       )) doa.Up       = pressed;
+  else if (keyMatches(key, keyDown     )) doa.Down     = pressed;
+  else if (keyMatches(key, keyLeft     )) doa.Left     = pressed;
+  else if (keyMatches(key, keyRight    )) doa.Right    = pressed;
+  else if (keyMatches(key, keyForward  )) doa.Forward  = pressed;
+  else if (keyMatches(key, keyBackward )) doa.Backward = pressed;
+  else {
+    ismovement = false;
+
+    if      (keyMatches(key, keyRollLeft )) doa.RollLeft  = pressed;
+    else if (keyMatches(key, keyRollRight)) doa.RollRight = pressed;
+    else if (keyMatches(key, keyRollReset)) doa.RollReset = pressed;
+
+    else if (runKeyMatches(key, keyRun)) doa.Run = pressed;
+
+    // Flip on the press that follows a release, never on the repeats a held
+    // key produces. Left alone while control is disabled, so that a mode
+    // cannot change behind the back of an app that is using the key itself.
+    else if (keyMatches(key, keyToggleEase)) {
+      if (pressed && !doa.EaseHeld && m_isControlled) easein = !easein;
+      doa.EaseHeld = pressed;
+    }
+    else if (keyMatches(key, keyToggleFly)) {
+      if (pressed && !doa.FlyHeld && m_isControlled) flymode = !flymode;
+      doa.FlyHeld = pressed;
+    }
+  }
+
+#ifndef TARGET_GLFW_WINDOW
+  // ofAppEGLWindow never reports the shift keys themselves, all it does is
+  // upper case the character they produce, so read the run state back off the
+  // case of the movement keys: that is the only trace shift leaves there.
+  // Caps lock looks the same as a held shift, which is the usual bargain.
+  if (ismovement && isLetter(key)) doa.Run = isUpperLetter(key);
 #else
-  const int key = keys.key;
+  (void)ismovement;
 #endif
-
-  if      (keyMatches(key, keyUp       )) doa.Up        = true;
-  else if (keyMatches(key, keyDown     )) doa.Down      = true;
-  else if (keyMatches(key, keyLeft     )) doa.Left      = true;
-  else if (keyMatches(key, keyRight    )) doa.Right     = true;
-  else if (keyMatches(key, keyForward  )) doa.Forward   = true;
-  else if (keyMatches(key, keyBackward )) doa.Backward  = true;
-
-  else if (keyMatches(key, keyRollLeft )) doa.RollLeft  = true;
-  else if (keyMatches(key, keyRollRight)) doa.RollRight = true;
-  else if (keyMatches(key, keyRollReset)) doa.RollReset = true;
 
   m_doa = doa;
 }
 
+void ofxFirstPersonCamera::keyPressed(ofKeyEventArgs& keys)
+{
+#ifdef TARGET_GLFW_WINDOW
+  setAction(keys.keycode, true);
+#else
+  setAction(keys.key, true);
+#endif
+}
+
 void ofxFirstPersonCamera::keyReleased(ofKeyEventArgs& keys)
 {
-  Actions doa = m_doa;
 #ifdef TARGET_GLFW_WINDOW
-  const int key = keys.keycode;
+  setAction(keys.keycode, false);
 #else
-  const int key = keys.key;
+  setAction(keys.key, false);
 #endif
-
-  if      (keyMatches(key, keyUp       )) doa.Up        = false;
-  else if (keyMatches(key, keyDown     )) doa.Down      = false;
-  else if (keyMatches(key, keyLeft     )) doa.Left      = false;
-  else if (keyMatches(key, keyRight    )) doa.Right     = false;
-  else if (keyMatches(key, keyForward  )) doa.Forward   = false;
-  else if (keyMatches(key, keyBackward )) doa.Backward  = false;
-
-  else if (keyMatches(key, keyRollLeft )) doa.RollLeft  = false;
-  else if (keyMatches(key, keyRollRight)) doa.RollRight = false;
-  else if (keyMatches(key, keyRollReset)) doa.RollReset = false;
-
-  m_doa = doa;
 }
