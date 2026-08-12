@@ -52,6 +52,30 @@ bool isRelativePointer(int fd)
 } // namespace
 #endif
 
+namespace {
+
+// Bindings are matched case insensitively. The ASCII path reports the
+// character the keyboard produced, so tapping shift halfway through a
+// movement turns 'w' into 'W': the release no longer matches the binding
+// that the press did and the action stays latched on until the key is
+// pressed and released again with the same modifiers. Folding both the
+// incoming key and the binding to lower case keeps a press and its release
+// looking alike. GLFW keycodes for letters are the upper case ASCII values
+// and nothing else lives in the 'a'-'z' range, so this is a no-op there
+// beyond letting users write their bindings either way.
+int foldKey(int key)
+{
+  if (key >= 'A' && key <= 'Z') return key - 'A' + 'a';
+  return key;
+}
+
+bool keyMatches(int key, int binding)
+{
+  return foldKey(key) == foldKey(binding);
+}
+
+} // namespace
+
 ofxFirstPersonCamera::ofxFirstPersonCamera()
 {
   auto &events = ofEvents();
@@ -356,16 +380,16 @@ void ofxFirstPersonCamera::keyPressed(ofKeyEventArgs& keys)
   const int key = keys.key;
 #endif
 
-  if      (key == keyUp       ) doa.Up        = true;
-  else if (key == keyDown     ) doa.Down      = true;
-  else if (key == keyLeft     ) doa.Left      = true;
-  else if (key == keyRight    ) doa.Right     = true;
-  else if (key == keyForward  ) doa.Forward   = true;
-  else if (key == keyBackward ) doa.Backward  = true;
+  if      (keyMatches(key, keyUp       )) doa.Up        = true;
+  else if (keyMatches(key, keyDown     )) doa.Down      = true;
+  else if (keyMatches(key, keyLeft     )) doa.Left      = true;
+  else if (keyMatches(key, keyRight    )) doa.Right     = true;
+  else if (keyMatches(key, keyForward  )) doa.Forward   = true;
+  else if (keyMatches(key, keyBackward )) doa.Backward  = true;
 
-  else if (key == keyRollLeft ) doa.RollLeft  = true;
-  else if (key == keyRollRight) doa.RollRight = true;
-  else if (key == keyRollReset) doa.RollReset = true;
+  else if (keyMatches(key, keyRollLeft )) doa.RollLeft  = true;
+  else if (keyMatches(key, keyRollRight)) doa.RollRight = true;
+  else if (keyMatches(key, keyRollReset)) doa.RollReset = true;
 
   m_doa = doa;
 }
@@ -379,16 +403,16 @@ void ofxFirstPersonCamera::keyReleased(ofKeyEventArgs& keys)
   const int key = keys.key;
 #endif
 
-  if      (key == keyUp       ) doa.Up        = false;
-  else if (key == keyDown     ) doa.Down      = false;
-  else if (key == keyLeft     ) doa.Left      = false;
-  else if (key == keyRight    ) doa.Right     = false;
-  else if (key == keyForward  ) doa.Forward   = false;
-  else if (key == keyBackward ) doa.Backward  = false;
+  if      (keyMatches(key, keyUp       )) doa.Up        = false;
+  else if (keyMatches(key, keyDown     )) doa.Down      = false;
+  else if (keyMatches(key, keyLeft     )) doa.Left      = false;
+  else if (keyMatches(key, keyRight    )) doa.Right     = false;
+  else if (keyMatches(key, keyForward  )) doa.Forward   = false;
+  else if (keyMatches(key, keyBackward )) doa.Backward  = false;
 
-  else if (key == keyRollLeft ) doa.RollLeft  = false;
-  else if (key == keyRollRight) doa.RollRight = false;
-  else if (key == keyRollReset) doa.RollReset = false;
+  else if (keyMatches(key, keyRollLeft )) doa.RollLeft  = false;
+  else if (keyMatches(key, keyRollRight)) doa.RollRight = false;
+  else if (keyMatches(key, keyRollReset)) doa.RollReset = false;
 
   m_doa = doa;
 }
