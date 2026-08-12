@@ -1,6 +1,6 @@
 # Architecture: ofxFirstPersonCamera
 
-`ofxFirstPersonCamera` is a lightweight openFrameworks addon that provides a first-person camera class, replicating standard video game camera controls. The class extends `ofCamera` and relies on GLFW to capture and manipulate the mouse cursor.
+`ofxFirstPersonCamera` is a lightweight openFrameworks addon that provides a first-person camera class, replicating standard video game camera controls. The class extends `ofCamera` and relies on GLFW to capture and manipulate the mouse cursor natively, with automatic fallbacks for basic openFrameworks environments like `ofAppEGLWindow` (e.g. Raspberry Pi headless).
 
 ## Class: `ofxFirstPersonCamera`
 
@@ -54,13 +54,13 @@ These methods are automatically bound to openFrameworks core events and generall
   Calculates pitch and yaw based on mouse deltas and applies rotation to the camera node.
 
 - **`void centerCursor()`**
-  Directly accesses the GLFW window to reposition the cursor to the center of the screen, used to prevent the cursor from leaving the window boundaries while looking around.
+  When compiled for GLFW (`TARGET_GLFW_WINDOW`), directly accesses the GLFW window to reposition the cursor to the center of the screen, used to prevent the cursor from leaving the window boundaries while looking around. On EGL, this is a no-op as the camera relies on relative mouse position deltas instead.
 
 ### Public Properties
 
 - **Key Bindings (int):**
   `keyUp`, `keyDown`, `keyLeft`, `keyRight`, `keyForward`, `keyBackward`, `keyRollLeft`, `keyRollRight`, `keyRollReset`
-  *(Mapped to GLFW_KEY_* constants)*
+  *(Mapped to `GLFW_KEY_*` constants on desktop, or standard ASCII characters when falling back to EGL)*
 
 - **Settings (float):**
   - `movespeed`: Units to move per frame.
