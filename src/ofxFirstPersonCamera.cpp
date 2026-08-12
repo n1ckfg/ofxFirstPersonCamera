@@ -123,6 +123,43 @@ bool isZero(const glm::vec3& v)
   return glm::dot(v, v) <= 0.0f;
 }
 
+// ofXml::set() formats through the default stream precision, which is six
+// significant digits: enough to round a position like 12345.678 off to the
+// nearest hundredth. Ask for a fixed number of decimals instead, so that a
+// pose survives the round trip whatever the scale of the scene.
+void setFloat(ofXml node, float value)
+{
+  node.set(ofToString(value, 6));
+}
+
+void appendVec3(ofXml parent, const std::string& name, const glm::vec3& v)
+{
+  ofXml node = parent.appendChild(name);
+  setFloat(node.appendChild("X"), v.x);
+  setFloat(node.appendChild("Y"), v.y);
+  setFloat(node.appendChild("Z"), v.z);
+}
+
+// Missing tags fall back rather than reading as zero, so that a hand edited
+// or older file still loads with something sane in the gaps
+float childFloat(const ofXml& parent, const std::string& name, float fallback)
+{
+  if (!parent) return fallback;
+
+  const ofXml node = parent.getChild(name);
+  return node ? node.getFloatValue() : fallback;
+}
+
+glm::vec3 childVec3(const ofXml& parent, const std::string& name, const glm::vec3& fallback)
+{
+  const ofXml node = parent ? parent.getChild(name) : ofXml();
+  if (!node) return fallback;
+
+  return glm::vec3(childFloat(node, "X", fallback.x),
+                   childFloat(node, "Y", fallback.y),
+                   childFloat(node, "Z", fallback.z));
+}
+
 } // namespace
 
 ofxFirstPersonCamera::ofxFirstPersonCamera()
@@ -137,6 +174,10 @@ ofxFirstPersonCamera::ofxFirstPersonCamera()
 
 ofxFirstPersonCamera::~ofxFirstPersonCamera()
 {
+  // Catches a pose that was still moving when the app was closed. Quitting
+  // mid-flight is otherwise the one way to lose the last few frames of it.
+  if (autosavePosition && m_unsavedPosition) saveCameraPosition();
+
   auto &events = ofEvents();
   ofRemoveListener(events.update      , this, &ofxFirstPersonCamera::update      , OF_EVENT_ORDER_BEFORE_APP);
   ofRemoveListener(events.keyPressed  , this, &ofxFirstPersonCamera::keyPressed  , OF_EVENT_ORDER_BEFORE_APP);
@@ -206,6 +247,124 @@ void ofxFirstPersonCamera::disableControl()
 #endif
 
   m_isControlled = false;
+}
+
+bool ofxFirstPersonCamera::hasUnsavedPosition() const
+{
+  return m_unsavedPosition;
+}
+
+bool ofxFirstPersonCamera::saveCameraPosition()
+{
+  return saveCameraPosition(cameraPositionFile);
+}
+
+// The layout follows the one ofxFPSCamera and ofxGameCamera write, with the
+// orientation quaternion added: position, up and look on their own are a pose
+// that has to be rebuilt through lookAt(), which cannot express roll and
+// rounds the rest. The look target is still written for those older readers.
+bool ofxFirstPersonCamera::saveCameraPosition(const std::string& file)
+{
+  const glm::vec3 pos = this->getPosition();
+  const glm::quat rot = this->getOrientationQuat();
+
+  ofXml xml;
+  ofXml camera = xml.appendChild("camera");
+
+  appendVec3(camera, "position", pos);
+
+  ofXml orientation = camera.appendChild("orientation");
+  setFloat(orientation.appendChild("X"), rot.x);
+  setFloat(orientation.appendChild("Y"), rot.y);
+  setFloat(orientation.appendChild("Z"), rot.z);
+  setFloat(orientation.appendChild("W"), rot.w);
+
+  appendVec3(camera, "up", upvector);
+  appendVec3(camera, "look", pos + this->getLookAtDir());
+
+  setFloat(camera.appendChild("FOV"), this->getFov());
+
+  // pugixml refuses to write into a folder that is not there, and plenty of
+  // projects have never needed a bin/data until now
+  const std::string folder = ofFilePath::getEnclosingDirectory(ofToDataPath(file), false);
+  if (!folder.empty() && !ofDirectory::doesDirectoryExist(folder, false)) {
+    ofDirectory::createDirectory(folder, false, true);
+  }
+
+  if (!xml.save(file)) {
+    ofLogError("ofxFirstPersonCamera") << "could not save the camera position to " << file;
+    return false;
+  }
+
+  m_unsavedPosition = false;
+  return true;
+}
+
+bool ofxFirstPersonCamera::loadCameraPosition()
+{
+  return loadCameraPosition(cameraPositionFile);
+}
+
+bool ofxFirstPersonCamera::loadCameraPosition(const std::string& file)
+{
+  ofXml xml;
+  if (!xml.load(file)) {
+    ofLogError("ofxFirstPersonCamera") << "could not load a camera position from " << file;
+    return false;
+  }
+
+  const ofXml camera = xml.getChild("camera");
+  if (!camera) {
+    ofLogError("ofxFirstPersonCamera") << file << " has no <camera> in it";
+    return false;
+  }
+
+  this->setPosition(childVec3(camera, "position", this->getPosition()));
+
+  upvector = childVec3(camera, "up", glm::vec3(0.0f, 1.0f, 0.0f));
+
+  const ofXml orientation = camera.getChild("orientation");
+  if (orientation) {
+    // Restores the pose as it was, roll included
+    this->setOrientation(glm::quat(childFloat(orientation, "W", 1.0f),
+                                   childFloat(orientation, "X", 0.0f),
+                                   childFloat(orientation, "Y", 0.0f),
+                                   childFloat(orientation, "Z", 0.0f)));
+  }
+  else if (camera.getChild("look")) {
+    // A file from a writer that only knew about look targets, ofxFPSCamera
+    // among them. Aiming at the target is the best that can be done with it.
+    this->lookAt(childVec3(camera, "look", this->getPosition() + this->getLookAtDir()), upvector);
+  }
+
+  const ofXml fov = camera.getChild("FOV");
+  if (fov) this->setFov(fov.getFloatValue());
+
+  // The camera just moved, but to a pose that is already on disk
+  m_lastpos = this->getPosition();
+  m_lastrot = this->getOrientationQuat();
+  m_unsavedPosition = false;
+
+  return true;
+}
+
+// Watches the pose instead of flagging each place that writes one, so that
+// moves the application makes itself count too. Autosaving then waits for the
+// first frame that nothing moved: saving while the camera is still gliding
+// would write the file every frame.
+void ofxFirstPersonCamera::trackPoseChanges()
+{
+  const glm::vec3 pos = this->getPosition();
+  const glm::quat rot = this->getOrientationQuat();
+
+  if (pos != m_lastpos || rot != m_lastrot) {
+    m_lastpos = pos;
+    m_lastrot = rot;
+    m_unsavedPosition = true;
+    return;
+  }
+
+  if (m_unsavedPosition && autosavePosition) saveCameraPosition();
 }
 
 // Puts the cursor back in the middle of the window so that every mouse event
@@ -324,6 +483,10 @@ void ofxFirstPersonCamera::applyRawRotation()
 
 void ofxFirstPersonCamera::update(ofEventArgs&)
 {
+  // Runs even when the camera is not being driven, so that a pose the
+  // application set itself still gets picked up by the autosave
+  trackPoseChanges();
+
   if (!m_isControlled) return;
 
 #ifdef OFX_FPC_EVDEV_MOUSE

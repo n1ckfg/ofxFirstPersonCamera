@@ -27,6 +27,18 @@ class ofxFirstPersonCamera : public ofCamera
     void enableControl();
     void disableControl();
 
+    // Position, orientation, up vector and field of view, written as XML
+    // through the core ofXml so that the addon stays dependency free. The
+    // orientation is stored as a quaternion, so roll and the exact pose come
+    // back rather than being rebuilt from a look target.
+    bool saveCameraPosition();
+    bool saveCameraPosition(const std::string& file);
+    bool loadCameraPosition();
+    bool loadCameraPosition(const std::string& file);
+
+    // True between a move and the next successful save
+    bool hasUnsavedPosition() const;
+
 #ifdef TARGET_GLFW_WINDOW
     // GLFW_KEY_* keycodes, independent of keyboard layout and modifiers
     int keyUp         = GLFW_KEY_E;
@@ -81,6 +93,17 @@ class ofxFirstPersonCamera : public ofCamera
 
     glm::vec3 upvector { 0.0f, 1.0f, 0.0f };
 
+    // Where saveCameraPosition()/loadCameraPosition() go when they are called
+    // without a file name. Relative paths land in bin/data, as everywhere else
+    // in openFrameworks.
+    std::string cameraPositionFile = "ofxFirstPersonCamera.xml";
+
+    // Writes the pose out on the first frame after it stops changing, and once
+    // more from the destructor if anything is still unsaved. Loading stays
+    // explicit: call loadCameraPosition() from setup() to start where the
+    // camera left off.
+    bool autosavePosition = false;
+
 #ifdef OFX_FPC_EVDEV_MOUSE
     // Take the mouse away from the rest of the system while control is
     // enabled, so that ofAppEGLWindow stops drawing/moving its own cursor.
@@ -101,6 +124,7 @@ class ofxFirstPersonCamera : public ofCamera
   private:
 
     void setAction(int key, bool pressed);
+    void trackPoseChanges();
     void nodeRotate(ofMouseEventArgs&);
     void centerCursor();
 
@@ -138,6 +162,12 @@ class ofxFirstPersonCamera : public ofCamera
     // 60 fps, just like movespeed
     float m_speedmod = 0.0f;
 
-    bool m_isControlled  = false;
-    bool m_isMouseInited = false;
+    // Pose as of the last frame, so that a change can be spotted wherever it
+    // came from, this class or the application moving the camera itself
+    glm::vec3 m_lastpos { 0.0f, 0.0f, 0.0f };
+    glm::quat m_lastrot { 1.0f, 0.0f, 0.0f, 0.0f };
+
+    bool m_unsavedPosition = false;
+    bool m_isControlled    = false;
+    bool m_isMouseInited   = false;
 };
