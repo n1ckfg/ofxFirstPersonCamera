@@ -307,6 +307,10 @@ bool ofxFirstPersonCamera::loadCameraPosition()
 
 bool ofxFirstPersonCamera::loadCameraPosition(const std::string& file)
 {
+  // An application that loads a pose of its own in setup() means it, so the
+  // automatic startup load steps aside rather than overwriting the choice
+  m_didStartupLoad = true;
+
   ofXml xml;
   if (!xml.load(file)) {
     ofLogError("ofxFirstPersonCamera") << "could not load a camera position from " << file;
@@ -346,6 +350,23 @@ bool ofxFirstPersonCamera::loadCameraPosition(const std::string& file)
   m_unsavedPosition = false;
 
   return true;
+}
+
+// Waits for the first frame rather than reading the file from the constructor:
+// by now the application has had its setup(), so cameraPositionFile is whatever
+// it wants it to be and any pose it set there is the fallback. Runs once, and
+// only if nothing has been loaded already.
+void ofxFirstPersonCamera::startupLoad()
+{
+  if (m_didStartupLoad) return;
+  m_didStartupLoad = true;
+
+  if (!loadPositionOnStartup) return;
+
+  // No file yet just means this is the first run, which is not worth a log
+  if (!ofFile::doesFileExist(ofToDataPath(cameraPositionFile))) return;
+
+  loadCameraPosition();
 }
 
 // Watches the pose instead of flagging each place that writes one, so that
@@ -483,6 +504,8 @@ void ofxFirstPersonCamera::applyRawRotation()
 
 void ofxFirstPersonCamera::update(ofEventArgs&)
 {
+  startupLoad();
+
   // Runs even when the camera is not being driven, so that a pose the
   // application set itself still gets picked up by the autosave
   trackPoseChanges();
@@ -633,9 +656,9 @@ void ofxFirstPersonCamera::setAction(int key, bool pressed)
 
     else if (runKeyMatches(key, keyRun)) doa.Run = pressed;
 
-    // Flip on the press that follows a release, never on the repeats a held
-    // key produces. Left alone while control is disabled, so that a mode
-    // cannot change behind the back of an app that is using the key itself.
+    // Act on the press that follows a release, never on the repeats a held
+    // key produces. Left alone while control is disabled, so that nothing
+    // happens behind the back of an app that is using the key itself.
     else if (keyMatches(key, keyToggleEase)) {
       if (pressed && !doa.EaseHeld && m_isControlled) easein = !easein;
       doa.EaseHeld = pressed;
@@ -643,6 +666,14 @@ void ofxFirstPersonCamera::setAction(int key, bool pressed)
     else if (keyMatches(key, keyToggleFly)) {
       if (pressed && !doa.FlyHeld && m_isControlled) flymode = !flymode;
       doa.FlyHeld = pressed;
+    }
+    else if (keyMatches(key, keyLoadPosition)) {
+      if (pressed && !doa.LoadHeld && m_isControlled) loadCameraPosition();
+      doa.LoadHeld = pressed;
+    }
+    else if (keyMatches(key, keySavePosition)) {
+      if (pressed && !doa.SaveHeld && m_isControlled) saveCameraPosition();
+      doa.SaveHeld = pressed;
     }
   }
 

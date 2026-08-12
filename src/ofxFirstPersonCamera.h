@@ -53,10 +53,13 @@ class ofxFirstPersonCamera : public ofCamera
     // Held down rather than tapped. Either shift key runs while this is bound
     // to one of them; rebinding it to anything else matches that key exactly.
     int keyRun        = GLFW_KEY_LEFT_SHIFT;
-    // Tapped to flip a mode. Ignored while control is disabled, so that they
-    // stay usable as application shortcuts when the camera is not driving.
-    int keyToggleEase = GLFW_KEY_T;
-    int keyToggleFly  = GLFW_KEY_Z;
+    // Tapped rather than held. Ignored while control is disabled, so that
+    // they stay usable as application shortcuts when the camera is not
+    // driving.
+    int keyToggleEase   = GLFW_KEY_T;
+    int keyToggleFly    = GLFW_KEY_Z;
+    int keyLoadPosition = GLFW_KEY_I;
+    int keySavePosition = GLFW_KEY_O;
 #else
     int keyUp         = 'e';
     int keyDown       = 'q';
@@ -67,9 +70,11 @@ class ofxFirstPersonCamera : public ofCamera
     int keyRollLeft   = 'x';
     int keyRollRight  = 'c';
     int keyRollReset  = 'f';
-    int keyRun        = OF_KEY_LEFT_SHIFT;
-    int keyToggleEase = 't';
-    int keyToggleFly  = 'z';
+    int keyRun          = OF_KEY_LEFT_SHIFT;
+    int keyToggleEase   = 't';
+    int keyToggleFly    = 'z';
+    int keyLoadPosition = 'i';
+    int keySavePosition = 'o';
 #endif
 
     float movespeed   = 1.00f;
@@ -99,10 +104,13 @@ class ofxFirstPersonCamera : public ofCamera
     std::string cameraPositionFile = "ofxFirstPersonCamera.xml";
 
     // Writes the pose out on the first frame after it stops changing, and once
-    // more from the destructor if anything is still unsaved. Loading stays
-    // explicit: call loadCameraPosition() from setup() to start where the
-    // camera left off.
+    // more from the destructor if anything is still unsaved
     bool autosavePosition = false;
+
+    // Reads cameraPositionFile back on the first frame, so the camera starts
+    // where it was left. Nothing happens when the file is not there yet, and
+    // calling loadCameraPosition() yourself first takes precedence.
+    bool loadPositionOnStartup = true;
 
 #ifdef OFX_FPC_EVDEV_MOUSE
     // Take the mouse away from the rest of the system while control is
@@ -124,6 +132,7 @@ class ofxFirstPersonCamera : public ofCamera
   private:
 
     void setAction(int key, bool pressed);
+    void startupLoad();
     void trackPoseChanges();
     void nodeRotate(ofMouseEventArgs&);
     void centerCursor();
@@ -152,10 +161,12 @@ class ofxFirstPersonCamera : public ofCamera
       bool RollRight = false;
       bool RollReset = false;
       bool Run       = false;
-      // The toggle keys repeat while held, so remember whether the last
-      // event already flipped the mode
+      // The tapped keys repeat while held, so remember whether the last
+      // event already did the deed
       bool EaseHeld  = false;
       bool FlyHeld   = false;
+      bool LoadHeld  = false;
+      bool SaveHeld  = false;
     } m_doa;
 
     // Movement speed the ease in has reached so far, in units per frame at
@@ -168,6 +179,7 @@ class ofxFirstPersonCamera : public ofCamera
     glm::quat m_lastrot { 1.0f, 0.0f, 0.0f, 0.0f };
 
     bool m_unsavedPosition = false;
+    bool m_didStartupLoad  = false;
     bool m_isControlled    = false;
     bool m_isMouseInited   = false;
 };
