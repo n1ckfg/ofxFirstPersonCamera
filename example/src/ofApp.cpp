@@ -1,5 +1,9 @@
 #include "ofApp.h"
 
+/*****************************************************
+// Based on ofxFPSCamera example by Ivaylo Getov, 2014
+*****************************************************/
+
 //--------------------------------------------------------------
 void ofApp::setup(){
 	ofSetVerticalSync(true);
@@ -7,41 +11,6 @@ void ofApp::setup(){
 	ofBackground(0);
 	ofSetWindowTitle("ofxFirstPersonCamera");
 	ofSetWindowPosition(ofGetScreenWidth()/2 - ofGetWidth()/2, ofGetScreenHeight()/2 - ofGetHeight()/2);
-
-	/*****************************************************
-	// ofxFirstPersonCamera
-
-	// Methods: ////////////////////////
-
-	camera.enableControl();       // Grab the cursor and start driving the camera
-	camera.disableControl();      // Release the cursor
-	camera.toggleControl();
-	camera.isControlled();        // Is the camera currently grabbing input?
-
-	// ofxFirstPersonCamera is an ofCamera, so everything ofCamera and
-	// ofNode offer works too: setPosition(), lookAt(), setNearClip(), ...
-
-	// Defaults: ///////////////////////
-
-	camera.movespeed   = 1.00f;   // Units travelled per frame at 60 fps
-	camera.rollspeed   = 1.00f;   // Degrees rolled per frame at 60 fps
-	camera.sensitivity = 0.10f;   // Degrees turned per pixel of mouse movement
-
-	camera.upvector = glm::vec3(0, 1, 0);
-
-	// Key bindings are GLFW_KEY_* keycodes and can all be reassigned:
-
-	camera.keyForward   = GLFW_KEY_W;
-	camera.keyBackward  = GLFW_KEY_S;
-	camera.keyLeft      = GLFW_KEY_A;
-	camera.keyRight     = GLFW_KEY_D;
-	camera.keyUp        = GLFW_KEY_E;
-	camera.keyDown      = GLFW_KEY_C;
-	camera.keyRollLeft  = GLFW_KEY_Q;
-	camera.keyRollRight = GLFW_KEY_R;
-	camera.keyRollReset = GLFW_KEY_F;
-
-	*****************************************************/
 
 	camera.movespeed = 4.0f;
 	camera.setNearClip(1.0f);
